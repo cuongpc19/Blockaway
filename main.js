@@ -239,7 +239,13 @@ function cubeMaterial(arrowTex) {
              mặt bên    — mũi tên
            Bản gốc để mặt thoát là đĩa đặc trơn; cái vòng là mình thêm. */
         float r = length(p);
-        if (dn > 0.5) {                       // mặt thoát
+        if (length(vDecal) < 0.5) {
+          /* Khối chặn cố định: aDir = 0 nên vDecal = 0. Không chặn ở đây thì
+             dn = 0 rơi thẳng vào nhánh mũi tên cuối, và atan2(0,0) vẽ ra một
+             mũi tên bịa trên mọi mặt — một khối không gỡ được lại mời người
+             chơi bấm. Không hướng thì không ký hiệu. */
+          da = 0.0;
+        } else if (dn > 0.5) {                // mặt thoát
           float core = 1.0 - smoothstep(0.180, 0.200, r);
           float ring = smoothstep(0.243, 0.258, r) * (1.0 - smoothstep(0.290, 0.306, r));
           da = clamp(core + ring * 0.92, 0.0, 1.0);
