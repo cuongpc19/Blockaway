@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%239238fa%27/%3E%3Cellipse cx=%2716%27 cy=%2716%27 rx=%277%27 ry=%275%27 fill=%27%23fff%27/%3E%3C/svg%3E">
+<title>Block Away — Tap Out Puzzle (Three.js)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* phòng trẻ ban ngày: tường kem, ánh cửa sổ, mặt bàn gỗ */
+    --sky-top:#f6e8d4; --sky-mid:#f0dcbe; --sky-low:#e6cda8; --sky-glow:#fff6e2;
+    --wood:#c08a4e; --wood-dark:#8a5a2b; --wood-deep:#5c3a1b;
+    --ui:#c0762f; --ui-dark:#8a5117; --ui-light:#e0a75c;
+    --ink:#fff4e4;
+    --font-ui:'Baloo 2','Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --hud-w:560px;   /* bề ngang cột HUD — xem ghi chú ở .bar/#dock */
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;overflow:hidden;background:var(--sky-top)}
+  body{font-family:var(--font-ui);color:var(--ink);user-select:none;touch-action:none;
+    overscroll-behavior:none}
+  button{font-family:inherit}
+
+  /* ══════════ nền ══════════
+     Một nền dùng chung cho cả Home lẫn màn chơi: đổi màn mà trời cũng đổi thì
+     người chơi thấy như đang ở hai game khác nhau. */
+  #bg{position:fixed;inset:0;z-index:0;overflow:hidden;
+    background:
+      /* nắng hắt qua cửa sổ, lệch phải như trong ảnh mẫu */
+      radial-gradient(58% 46% at 74% 20%, var(--sky-glow) 0%, rgba(255,246,226,0) 64%),
+      radial-gradient(90% 40% at 50% 100%, rgba(160,105,55,.22) 0%, rgba(160,105,55,0) 70%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 40%, var(--sky-low) 64%);
+  }
+  /* Mặt bàn gỗ. Khối đứng trên nó nên vân phải chạy ngang, hơi chếch, và nhạt
+     dần về phía xa — vân đều tăm tắp thì ra tấm nhựa in chứ không ra gỗ. */
+  #bg::after{
+    content:'';position:absolute;left:0;right:0;bottom:0;height:36%;
+    background:
+      linear-gradient(180deg, rgba(255,238,208,.8) 0 2px, rgba(0,0,0,0) 2px),
+      repeating-linear-gradient(179.3deg,
+        rgba(92,58,27,.11) 0 2px, rgba(92,58,27,0) 2px 21px),
+      repeating-linear-gradient(0.8deg,
+        rgba(255,228,186,.09) 0 3px, rgba(255,228,186,0) 3px 44px),
+      linear-gradient(180deg, #c68c4f 0%, #b47a40 30%, #9a6330 100%);
+    box-shadow:inset 0 12px 22px rgba(92,58,27,.22);
+  }
+  /* svg/canvas là replaced element: với width:auto chúng giữ kích thước nội tại
+     và bỏ qua cặp left+right, nên bề ngang phải ghi rõ ra. */
+  #stars{display:none}                 /* trời đêm cũ: không còn sao */
+  /* Thấp sát chân trời, không phải góc trên: ở góc trên nó đâm vào ví và pill
+     hướng dẫn, và một vệt sáng tròn nằm cạnh nút thì đọc ra như một nút nữa. */
+  #moon{display:none}                  /* trăng cũ: ban ngày thì thôi */
+  #hills{display:none}                 /* dãy núi cũ: mặt bàn thay chỗ */
+
+  /* ══════════ khung màn hình ══════════ */
+  /* Lớp HUD nằm trên canvas, nên nó phải trong suốt với chạm — nếu không thì
+     .playArea phủ đúng chỗ khối nằm và nuốt sạch chạm lẫn vuốt xoay. Chỉ
+     những thứ bấm được mới nhận lại sự kiện. */
+  #app{position:fixed;inset:0;z-index:2;pointer-events:none}
+  #app button,#app input,#app .sw{pointer-events:auto}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column}
+  .screen.on{display:flex}
+
+  /* ══════════ nút chung ══════════ */
+  .ic{width:46px;height:46px;flex:0 0 auto;border:0;border-radius:14px;cursor:pointer;
+    display:grid;place-items:center;color:var(--ink);
+    background:linear-gradient(180deg,var(--ui-light),var(--ui));
+    box-shadow:0 4px 0 var(--ui-dark),0 6px 14px rgba(0,0,0,.35);
+    transition:transform .08s,box-shadow .08s}
+  .ic:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ui-dark)}
+  .ic.round{border-radius:50%}
+  .ic svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2.4;
+    stroke-linecap:round;stroke-linejoin:round}
+  .ic.quiet{background:rgba(255,255,255,.10);box-shadow:0 3px 0 rgba(0,0,0,.3)}
+  .ic.quiet:active{box-shadow:0 1px 0 rgba(0,0,0,.3)}
+
+  .coin{display:inline-block;flex:0 0 auto;width:1.15em;height:1.15em;vertical-align:-.16em;
+    border-radius:50%;
+    background:radial-gradient(circle at 50% 46%,#ffe07a 0 27%,#ffc21e 27% 43%,#c67a06 43% 50%,transparent 50%);
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
+  .wallet{display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px;
+    padding:7px 12px 7px 9px;border-radius:14px;background:rgba(0,0,0,.28);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+
+  /* ══════════ HOME ══════════ */
+  #screenHome{padding:max(16px,env(safe-area-inset-top)) 18px max(20px,env(safe-area-inset-bottom))}
+  .homeTop{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:18px;min-height:0}
+  .logoMark{display:flex;gap:8px;align-items:flex-end}
+  .logoMark i{display:block;border-radius:24%;
+    box-shadow:inset 0 -7px 0 rgba(0,0,0,.16),0 8px 18px rgba(0,0,0,.4)}
+  #logoText{font-weight:800;font-size:clamp(34px,10.5vw,56px);line-height:.98;letter-spacing:.02em;
+    text-align:center;color:#fff;-webkit-text-stroke:9px #7a4413;paint-order:stroke fill;
+    text-shadow:0 8px 0 rgba(40,12,80,.5)}
+  .homeMid{flex:0 0 auto;width:min(420px,100%);margin:0 auto;display:flex;
+    flex-direction:column;align-items:stretch;gap:15px}
+  .playBtn{position:relative;width:100%;padding:19px 10px;border:0;border-radius:20px;cursor:pointer;
+    background:linear-gradient(180deg,#8fe04a 0%,#5cb524 55%,#3d8214 100%);
+    color:#0d2a06;font-weight:800;font-size:24px;line-height:1;letter-spacing:.09em;
+    box-shadow:0 6px 0 #2f6410,0 14px 26px rgba(0,0,0,.45);
+    animation:playPulse 2.4s ease-in-out infinite}
+  .playBtn:active{transform:translateY(4px);box-shadow:0 2px 0 #2f6410;animation:none}
+  @keyframes playPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+  /* Khung ngang: chiều cao thừa dồn hết vào khoảng giữa logo và nút chính, làm
+     hai thứ vốn là MỘT cụm trông thành hai cụm rời tít hai đầu màn hình. Ở khung
+     dọc thì ngược lại — nút nằm thấp là để vừa tầm ngón cái — nên chỉ gom lại
+     khi khung rộng hơn cao. */
+  @media (min-aspect-ratio:1/1){
+    #screenHome{justify-content:center;gap:30px}
+    .homeTop{flex:0 1 auto}
+  }
+  .homeStats{display:flex;justify-content:center}
+  .homeIcons{display:flex;justify-content:center;gap:12px}
+  .homeIc{position:relative;width:44px;height:44px;flex:0 0 auto;border-radius:14px;cursor:pointer;
+    border:1px solid rgba(255,255,255,.10);display:grid;place-items:center;font-size:20px;
+    background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05));
+    box-shadow:0 3px 0 rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.14);color:var(--ink)}
+  .homeIc:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.34)}
+  .dot{position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;
+    background:#ff4b4b;border:2px solid #4b2f16;box-shadow:0 0 8px rgba(255,75,75,.8)}
+  .dot[hidden]{display:none}
+
+  /* ══════════ HUD màn chơi ══════════ */
+  /* Cột HUD. Khung ngang desktop (1915px) rộng hơn khung dọc điện thoại gấp
+     bốn lần rưỡi; để hai thanh giãn hết bề ngang thì bốn vật thể văng ra bốn
+     góc, pill LEVEL cách cái ví gần 1900px. Hậu quả không phải xấu mà là khó
+     dùng: đọc một dòng trạng thái phải quét hết màn hình, và hai nút thu phóng
+     ở hai góc dưới xa tay tới mức không còn ra dáng thuộc về bàn chơi.
+     Ghim cả hai thanh vào một cột cỡ điện thoại rồi canh giữa — cụm khối vốn
+     đã nằm giữa, nên HUD ôm đúng lấy nó ở mọi bề ngang.
+     Nút ghim giữa (.ic.mid, #tools) vẫn đúng chỗ: chúng lấy 50% của thanh, mà
+     thanh thì đã canh giữa màn hình. */
+  .bar,#dock{width:100%;max-width:var(--hud-w);margin-inline:auto}
+  .bar{flex:0 0 auto;position:relative;display:flex;align-items:center;gap:10px;
+    padding:calc(env(safe-area-inset-top) + 12px) 14px 12px}
+  .spacer{flex:1 1 auto}
+  #levelPill{display:flex;align-items:center;gap:7px;padding:8px 15px;border-radius:14px;
+    background:rgba(0,0,0,.28);font-weight:800;font-size:15px;letter-spacing:.10em;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+  /* Nhãn độ khó bật lên thì THAY CHỖ chữ "LEVEL", không chen thêm bề ngang —
+     nếu không thì pill dài ra và đẩy lệch nút giữa. */
+  #levelPill.tagged .lbl{display:none}
+  .levelTag{padding:2px 8px;border-radius:9px;font-size:12px;letter-spacing:.08em;
+    background:linear-gradient(180deg,#ff8a5c,#e0522a);color:#fff;
+    box-shadow:0 2px 0 rgba(0,0,0,.3)}
+  .levelTag[hidden]{display:none}
+  /* Nút giữa ghim bằng absolute. Hai spacer flex chỉ canh giữa *giữa hai nhóm*,
+     mà hai nhóm luôn khác bề ngang nên nút sẽ lệch — lệch khác nhau mỗi màn hình. */
+  .ic.mid{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 12px);
+    transform:translateX(-50%)}
+  .ic.mid:active{transform:translateX(-50%) translateY(3px)}
+
+  /* Dưới 380px thì pill LEVEL và nút Chơi lại (ghim giữa) chạm nhau. Thu pill
+     lại chứ không bỏ ghim giữa: nút giữa lệch mỗi máy một kiểu còn khó chịu hơn. */
+  @media (max-width:380px){
+    #levelPill{padding:7px 11px;font-size:13.5px;gap:5px;letter-spacing:.06em}
+    .levelTag{padding:2px 6px;font-size:11px}
+    .ic{width:42px;height:42px}
+    .ic svg{width:22px;height:22px}
+  }
+
+  #tipWrap{flex:0 0 auto;display:flex;justify-content:center;margin-top:14px;min-height:48px}
+  #tip{background:linear-gradient(180deg,#c98a3c,#96601f);border-radius:24px;padding:12px 26px;
+    font-weight:700;font-size:16px;box-shadow:0 4px 0 #6b4315,0 8px 20px rgba(0,0,0,.4);
+    opacity:0;transform:translateY(-8px);transition:opacity .3s,transform .3s}
+  #tip.on{opacity:1;transform:none}
+
+  #combo{position:absolute;left:max(18px,calc(50% - var(--hud-w)/2 + 18px));top:29%;font-weight:800;font-size:26px;line-height:1.02;
+    opacity:0;transform:scale(.6) rotate(-8deg);transition:opacity .25s,transform .25s;
+    -webkit-text-stroke:4px rgba(94,54,16,.85);paint-order:stroke fill;pointer-events:none}
+  #combo.on{opacity:1;transform:rotate(-8deg)}
+  #combo b{display:block;font-size:30px}
+
+  .playArea{flex:1 1 auto;min-height:0}
+
+  /* hàng booster */
+  #dock{flex:0 0 auto;position:relative;display:flex;align-items:flex-end;
+    justify-content:space-between;
+    padding:0 14px calc(env(safe-area-inset-bottom) + 16px)}
+  /* Hai cột ở hai góc: góc trái thu nhỏ, góc phải phóng to. Cột chứ không phải
+     hàng — hàng booster ở giữa là thứ phải giữ nguyên chỗ, nút phụ mọc lên
+     trên thì không bao giờ đụng vào nó. */
+  .dockSide{display:flex;flex-direction:column;gap:10px}
+  .ic:disabled{opacity:.34;cursor:default}
+  .ic:disabled:active{transform:none;box-shadow:0 4px 0 var(--ui-dark),0 6px 14px rgba(0,0,0,.35)}
+  .ic.quiet:disabled:active{box-shadow:0 3px 0 rgba(0,0,0,.3)}
+  #tools{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);
+    transform:translateX(-50%);display:flex;gap:14px}
+  /* Thứ bậc kích thước = thứ bậc ý định: booster 58, nút phụ 46. */
+  .tool{position:relative;width:58px;height:58px;flex:0 0 auto;border:0;border-radius:18px;
+    cursor:pointer;display:grid;place-items:center;color:var(--ink);
+    background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));
+    box-shadow:0 4px 0 rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.16);
+    transition:transform .08s,box-shadow .08s,opacity .12s}
+  .tool:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.36)}
+  .tool svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2.2;
+    stroke-linecap:round;stroke-linejoin:round}
+  /* Không dùng được thì mờ đi, đừng để bấm rồi mới báo lỗi. */
+  .tool:disabled{opacity:.32;cursor:default}
+  .tool:disabled:active{transform:none}
+  .tool.armed{background:linear-gradient(180deg,#ffd86a,#f0a81e);
+    box-shadow:0 4px 0 #a86c05,0 0 20px rgba(255,200,60,.5)}
+  .tool.armed svg{stroke:#3a2405}
+  .tool[hidden]{display:none}      /* display:grid đè [hidden] mặc định */
+  .price{position:absolute;top:-6px;right:-6px;min-width:24px;height:22px;padding:0 7px;
+    border-radius:11px;color:#fff;font-weight:800;font-size:13px;line-height:22px;
+    text-align:center;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.45);
+    background:linear-gradient(180deg,#5fd36f,#2f9d4d)}
+  .price.buy{background:linear-gradient(180deg,#ffd05a,#e8a400);color:#3a2405}
+  .price[hidden]{display:none}
+
+  /* ══════════ overlay ══════════ */
+  .overlay{position:fixed;inset:0;z-index:5;display:none;place-items:center;padding:20px}
+  .overlay.on{display:grid;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .scrim{position:absolute;inset:0;background:rgba(52,32,14,.70);backdrop-filter:blur(4px)}
+  .panel{position:relative;width:min(92vw,430px);padding:22px;border-radius:22px;
+    background:linear-gradient(180deg,#6f4826,#4b2f16);border:2px solid #a9743c;
+    box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  .panel h3{margin:0 0 14px;font-size:22px;font-weight:800;text-align:center;letter-spacing:.04em}
+  .btn{width:100%;margin-top:9px;border:0;cursor:pointer;font-weight:800;font-size:17px;
+    color:#fff;padding:13px;border-radius:14px;
+    background:linear-gradient(180deg,var(--ui-light),var(--ui));box-shadow:0 4px 0 var(--ui-dark)}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ui-dark)}
+  .btn.primary{background:linear-gradient(180deg,#8fe04a,#5cb524);box-shadow:0 4px 0 #3d8214;color:#0d2a06}
+  .btn.danger{background:linear-gradient(180deg,#ff7a6b,#e03b28);box-shadow:0 4px 0 #a82415}
+  .btn.ghost{background:rgba(255,255,255,.10);box-shadow:0 3px 0 rgba(0,0,0,.3)}
+  .field{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0;
+    font-weight:700;font-size:16px}
+  .field input{width:96px;padding:9px 11px;border-radius:11px;border:2px solid #a9743c;
+    background:#4b2f16;color:#fff;font:inherit;font-size:16px;text-align:center}
+  .sw{width:60px;height:32px;border-radius:16px;background:#4b2f16;border:2px solid #a9743c;
+    position:relative;cursor:pointer;flex:0 0 auto}
+  .sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+    background:#cbb393;transition:.18s}
+  .sw.on{background:#2f7d2f;border-color:#54c554}
+  .sw.on i{left:31px;background:#eafbe6}
+  .hint{font-size:12.5px;font-weight:600;opacity:.62;text-align:center;margin-top:12px;line-height:1.45}
+
+  /* thắng màn */
+  #winOverlay .panel{background:radial-gradient(70% 60% at 50% 30%,#ffcf5e 0%,#ef9a2a 48%,#c2701a 100%);
+    border-color:#ffe0a0;text-align:center}
+  #wd{font-weight:800;font-size:clamp(38px,12vw,62px);color:#fff;-webkit-text-stroke:9px #8a4a16;
+    paint-order:stroke fill;text-shadow:0 8px 0 rgba(120,64,16,.45);
+    animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes pop{from{transform:scale(.5)}to{transform:scale(1)}}
+  #faces{display:flex;gap:8px;justify-content:center;align-items:flex-end;margin:18px 0 14px;height:100px}
+  .face{border-radius:22%;position:relative;box-shadow:inset 0 -8px 0 rgba(0,0,0,.14)}
+  .reward{display:flex;align-items:center;justify-content:center;gap:7px;font-weight:800;
+    font-size:22px;margin-bottom:16px}
+  .winRow{display:flex;gap:9px;align-items:stretch}
+  .winRow .btn{margin-top:0}
+  .winRow .sq{width:54px;flex:0 0 auto;padding:13px 0;font-size:20px}
+  .winRow .grow{flex:1 1 auto}
+
+  /* mua booster */
+  .shopIcon{width:76px;height:76px;margin:0 auto 12px;border-radius:22px;display:grid;place-items:center;
+    background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.06));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+  .shopIcon svg{width:40px;height:40px;fill:none;stroke:#fff;stroke-width:2.2;
+    stroke-linecap:round;stroke-linejoin:round}
+  .shopDesc{text-align:center;font-weight:700;font-size:15px;opacity:.82;line-height:1.5}
+  .shopCost{display:flex;align-items:center;justify-content:center;gap:7px;font-weight:800;
+    font-size:20px;margin:12px 0 4px}
+
+  /* Loé sáng vụ nổ: chớp rồi tắt trong chưa tới nửa giây, phủ lên tất cả
+     nhưng trong suốt với chạm nên không nuốt cú bấm nào. */
+  #flash{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;
+    background:radial-gradient(58% 48% at 50% 52%,
+      rgba(255,244,214,.95) 0%, rgba(255,176,70,.34) 44%, rgba(255,120,30,0) 72%)}
+  #flash.on{animation:boomFlash .42s ease-out}
+  @keyframes boomFlash{0%{opacity:0}10%{opacity:.9}100%{opacity:0}}
+
+  /* ══════════ tutorial ══════════ */
+  /* Chính #tut cũng phủ kín màn hình, nên nó phải trong suốt với chạm;
+     chỉ bốn tấm chặn bên trong mới nhận sự kiện. */
+  #tut{position:fixed;inset:0;z-index:6;pointer-events:none}
+  #tut[hidden]{display:none}
+  /* Bốn tấm chặn quây quanh nút, chừa đúng ô của nút ra. Không dùng một tấm
+     phủ kín rồi nâng z-index nút lên: nút nằm trong #app (z-index:2) nên nó
+     tạo stacking context riêng, z-index con không bao giờ vượt được lớp phủ
+     ở ngoài — bấm sẽ trượt, mà chẳng báo lỗi gì. */
+  #tutBlock i{position:absolute;pointer-events:auto;display:block}
+  /* box-shadow toả rộng = khoét một lỗ: bên trong sáng, ngoài tối hết.
+     pointer-events:none để chạm lọt xuống đúng nút bên dưới. */
+  #tutHole{position:absolute;border-radius:20px;pointer-events:none;
+    box-shadow:0 0 0 9999px rgba(52,32,14,.80),0 0 0 4px rgba(255,214,106,.9),
+      0 0 26px 8px rgba(255,200,60,.45);
+    transition:all .25s ease}
+  /* Vòng sáng nở ra từ lỗ khoét: mắt bắt chuyển động trước khi kịp đọc chữ, nên
+     đây mới là thứ chỉ đúng nút, không phải đoạn mô tả. */
+  #tutHole i{position:absolute;inset:-4px;border-radius:22px;pointer-events:none;
+    border:3px solid rgba(255,214,106,.95);animation:tutRing 1.5s ease-out infinite}
+  @keyframes tutRing{0%{transform:scale(1);opacity:.95}
+    70%{transform:scale(1.5);opacity:0}100%{transform:scale(1.5);opacity:0}}
+
+  #tutTip{position:absolute;width:min(86vw,330px);padding:16px 18px 14px;border-radius:20px;
+    background:linear-gradient(180deg,#c98a3c,#96601f);pointer-events:none;
+    box-shadow:0 5px 0 #6b4315,0 10px 26px rgba(0,0,0,.5);text-align:center}
+  /* mũi nhọn chỉ xuống nút, để cái thẻ và cái lỗ đọc ra là một cặp */
+  #tutTip::after{content:'';position:absolute;left:50%;bottom:-11px;width:20px;height:20px;
+    transform:translateX(-50%) rotate(45deg);background:#96601f;border-radius:4px}
+  #tutStep{display:inline-block;margin-bottom:9px;padding:3px 11px;border-radius:9px;
+    font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    background:rgba(0,0,0,.30);color:#ffe1a8}
+  #tutIcon{width:60px;height:60px;margin:0 auto 9px;border-radius:18px;display:grid;place-items:center;
+    background:linear-gradient(180deg,#ffd86a,#f0a81e);box-shadow:0 4px 0 #a86c05}
+  #tutIcon svg{width:32px;height:32px;fill:none;stroke:#3a2405;stroke-width:2.2;
+    stroke-linecap:round;stroke-linejoin:round}
+  #tutTip b{display:block;font-size:19px;margin-bottom:5px}
+  #tutTip span{display:block;font-size:14.5px;font-weight:600;opacity:.92;line-height:1.45}
+  #tutCta{margin-top:11px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.28);
+    font-size:14px;font-weight:800;color:#fff3d6}
+  #tutCta em{font-style:normal;animation:tutNudge 1.5s ease-in-out infinite;display:inline-block}
+  @keyframes tutNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+  #tutSkip{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:14px;
+    pointer-events:auto;border:0;cursor:pointer;border-radius:12px;padding:9px 14px;
+    font-weight:800;font-size:13.5px;color:#ffe9c9;background:rgba(0,0,0,.42);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+
+  /* Bàn tay: bọc ngoài giữ vị trí và chiều xoay, svg bên trong lo cú chạm — gộp
+     cả hai vào một transform thì keyframe sẽ xoá mất góc xoay.
+     Và khi nút nằm sát đáy màn hình (đúng chỗ hàng booster ngồi) thì không còn
+     chỗ cho bàn tay bên dưới, nên nó lật lên nằm trên, ngón chỉ xuống. */
+  #tutHand{position:absolute;width:54px;pointer-events:none;transform-origin:40% 8%}
+  #tutHand svg{display:block;width:100%;height:auto;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.55));animation:tutTap 1.5s ease-in-out infinite}
+  #tutHand.up{transform:rotate(180deg)}
+  @keyframes tutTap{0%,100%{transform:translateY(7px) scale(1)}
+    45%{transform:translateY(-7px) scale(.94)}}
+
+  /* ══════════ mẹo thu phóng ══════════ */
+  #zoomDemo{position:relative;height:158px;margin:4px 0 14px;display:grid;place-items:center}
+  .zStage{position:relative;width:172px;height:118px;border-radius:18px;
+    border:2px dashed rgba(255,255,255,.26);display:grid;place-items:center}
+  .zCube{width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(180deg,#f2c230,#d9942c);
+    box-shadow:inset 0 -6px 0 rgba(0,0,0,.18),0 6px 14px rgba(0,0,0,.45);
+    animation:zScale 2.8s ease-in-out infinite}
+  @keyframes zScale{0%,10%{transform:scale(.78)}44%,60%{transform:scale(1.55)}
+    94%,100%{transform:scale(.78)}}
+  /* chụm hai ngón */
+  .zTip{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;
+    border-radius:50%;background:radial-gradient(circle at 38% 32%,#ffe6cd,#dfa072);
+    border:2px solid #8a4a22;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+  .zTip.a{animation:zPinchA 2.8s ease-in-out infinite}
+  .zTip.b{animation:zPinchB 2.8s ease-in-out infinite}
+  @keyframes zPinchA{0%,10%{transform:translate(-15px,-11px)}
+    44%,60%{transform:translate(-46px,-33px)}94%,100%{transform:translate(-15px,-11px)}}
+  @keyframes zPinchB{0%,10%{transform:translate(15px,11px)}
+    44%,60%{transform:translate(46px,33px)}94%,100%{transform:translate(15px,11px)}}
+  .zHand{position:absolute;width:50px;left:50%;top:50%;margin:-4px 0 0 -20px;
+    transform-origin:40% 8%;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.55));animation:zHandMove 2.8s ease-in-out infinite}
+  @keyframes zHandMove{0%,10%{transform:translate(15px,11px) rotate(-18deg)}
+    44%,60%{transform:translate(46px,33px) rotate(-18deg)}
+    94%,100%{transform:translate(15px,11px) rotate(-18deg)}}
+  /* con lăn chuột */
+  .zMouse{position:absolute;right:10px;bottom:8px;width:58px;height:88px;border-radius:29px;
+    border:3px solid rgba(255,255,255,.85);background:rgba(0,0,0,.26)}
+  /* vạch chia hai phím, để cái hình đọc ra là con chuột chứ không phải cái điện thoại */
+  .zMouse::after{content:'';position:absolute;left:50%;top:3px;width:2px;height:30px;
+    transform:translateX(-50%);background:rgba(255,255,255,.5)}
+  .zMouse i{position:absolute;left:50%;top:12px;width:7px;height:20px;border-radius:4px;
+    background:#ffd05a;box-shadow:0 0 10px rgba(255,208,90,.9);z-index:1;
+    animation:zWheel 2.8s ease-in-out infinite}
+  @keyframes zWheel{0%,10%{transform:translate(-50%,8px)}
+    44%,60%{transform:translate(-50%,-6px)}94%,100%{transform:translate(-50%,8px)}}
+  #zoomDemo.touch .zMouse{display:none}
+  #zoomDemo.mouse .zTip{display:none}
+  /* chuột: ngón trỏ chỉ xuống con lăn và đẩy nó lên xuống. Bàn tay lật ngược
+     lại (ngón chỉ xuống) vì nó với từ trên xuống, không đưa từ dưới lên. */
+  #zoomDemo.mouse .zHand{left:auto;top:auto;margin:0;right:11px;bottom:34px;width:46px;z-index:2;
+    transform-origin:40% 8%;animation:zHandWheel 2.8s ease-in-out infinite}
+  @keyframes zHandWheel{0%,10%{transform:rotate(180deg) translateY(-8px)}
+    44%,60%{transform:rotate(180deg) translateY(6px)}
+    94%,100%{transform:rotate(180deg) translateY(-8px)}}
+
+  #toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 96px);z-index:9;
+    transform:translateX(-50%) translateY(12px);opacity:0;pointer-events:none;
+    background:rgba(60,38,17,.95);border:1px solid #a9743c;border-radius:14px;
+    padding:11px 18px;font-weight:700;font-size:14.5px;box-shadow:0 10px 26px rgba(0,0,0,.5);
+    transition:opacity .2s,transform .2s;max-width:min(88vw,360px);text-align:center}
+  #toast.on{opacity:1;transform:translateX(-50%)}
+
+  #load{position:fixed;inset:0;z-index:20;display:grid;place-items:center;
+    background:var(--sky-top);color:var(--wood-deep);
+    font-weight:700;font-size:17px;letter-spacing:.05em}
+  #load.off{display:none}
+  #bar{margin-top:14px;width:190px;height:8px;border-radius:4px;background:#d9b98c;overflow:hidden}
+  #bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8fe04a,#b6f56b);transition:width .2s}
+
+  @media (prefers-reduced-motion:reduce){
+    .playBtn{animation:none}
+    #wd{animation:none}
+    #tutHand svg,#tutHole i,#tutCta em{animation:none}
+    #flash.on{animation:none}
+    .zCube,.zTip,.zHand,.zMouse i{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="bg">
+  <canvas id="stars"></canvas>
+  <div id="moon"></div>
+  <svg id="hills" viewBox="0 0 800 340" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 214 L92 170 L150 196 L226 146 L300 190 L372 160 L438 200 L520 154 L600 192 L672 166 L740 200 L800 176 L800 340 L0 340Z" fill="#3a1266" opacity=".72"/>
+    <path d="M0 252 L74 224 L142 250 L214 216 L286 248 L360 222 L440 254 L520 226 L596 252 L668 228 L740 250 L800 232 L800 340 L0 340Z" fill="#2a0d50" opacity=".9"/>
+    <path d="M0 292 L120 272 L250 292 L380 270 L500 292 L640 274 L800 290 L800 340 L0 340Z" fill="#1c0838"/>
+  </svg>
+</div>
+
+<canvas id="gl"></canvas>
+<style>#gl{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block}</style>
+
+<div id="app">
+
+  <!-- ══════════ HOME ══════════ -->
+  <section id="screenHome" class="screen">
+    <div class="homeTop">
+      <div class="logoMark" aria-hidden="true">
+        <i style="width:34px;height:34px;background:#7bd33f"></i>
+        <i style="width:46px;height:46px;background:#ffc80d"></i>
+        <i style="width:38px;height:38px;background:#f2552f"></i>
+      </div>
+      <div id="logoText">BLOCK<br>AWAY</div>
+    </div>
+    <div class="homeMid">
+      <button class="playBtn" id="btnPlay">LEVEL <b id="homeLevel">1</b></button>
+      <div class="homeStats">
+        <div class="wallet"><i class="coin"></i><span data-coins>0</span></div>
+      </div>
+      <div class="homeIcons">
+        <button class="homeIc" id="btnDaily" title="Quà hằng ngày">🎁<i class="dot" id="dailyDot" hidden></i></button>
+        <button class="homeIc" id="btnHomeSet" title="Cài đặt">⚙️</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ MÀN CHƠI ══════════ -->
+  <section id="screenGame" class="screen">
+    <header class="bar">
+      <button class="ic" id="btnGameSet" title="Cài đặt" aria-label="Cài đặt">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/>
+        <path d="M12 3v2.2M12 18.8V21M4.6 7.8l1.9 1.1M17.5 15.1l1.9 1.1M4.6 16.2l1.9-1.1M17.5 8.9l1.9-1.1"/></svg>
+      </button>
+      <div id="levelPill"><span class="lbl">LEVEL</span><span id="levelNum">1</span><span class="levelTag" id="levelTag" hidden>KHÓ</span></div>
+      <div class="spacer"></div>
+      <button class="ic mid" id="btnRestart" title="Chơi lại màn" aria-label="Chơi lại">
+        <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4.5V11h-6"/></svg>
+      </button>
+      <div class="wallet"><i class="coin"></i><span data-coins>0</span></div>
+    </header>
+
+    <div id="tipWrap"><div id="tip"></div></div>
+    <div id="combo">Combo<b>X1</b></div>
+    <div class="playArea"></div>
+
+    <div id="dock">
+      <div class="dockSide">
+        <button class="ic round quiet" id="btnRecenter" title="Đưa góc nhìn về mặc định" aria-label="Góc nhìn">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/>
+          <circle cx="12" cy="12" r="1.4" fill="#fff" stroke="none"/>
+          <path d="M12 3.2v3M12 17.8v3M3.2 12h3M17.8 12h3"/></svg>
+        </button>
+        <button class="ic round quiet" id="btnZoomOut" title="Thu nhỏ" aria-label="Thu nhỏ">
+          <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.6"/>
+          <path d="M15.3 15.3 20.6 20.6M7.6 10.5h5.8"/></svg>
+        </button>
+      </div>
+      <div id="tools">
+        <button class="tool" id="tRocket" hidden title="Tên lửa">
+          <svg viewBox="0 0 24 24"><path d="M12 2c3 2.4 4.5 5.8 4.5 9.4L16 16H8l-.5-4.6C7.5 7.8 9 4.4 12 2Z"/>
+          <path d="M8 13.5 5 16l.6 3.4L8 18M16 13.5 19 16l-.6 3.4L16 18"/>
+          <path d="M10.5 19.5 12 22l1.5-2.5"/><circle cx="12" cy="9.5" r="1.6"/></svg>
+          <span class="price" id="pRocket">2</span>
+        </button>
+        <button class="tool" id="tHint" hidden title="Gợi ý">
+          <svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/>
+          <path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5.9 1.2.9 2h5.4c0-.8.3-1.5.9-2A6 6 0 0 0 12 3Z"/></svg>
+          <span class="price" id="pHint">1</span>
+        </button>
+        <button class="tool" id="tMagnet" hidden title="Nam châm">
+          <svg viewBox="0 0 24 24"><path d="M6 4v8a6 6 0 0 0 12 0V4"/><path d="M6 10h5M13 10h5"/></svg>
+          <span class="price" id="pMagnet">2</span>
+        </button>
+      </div>
+      <div class="dockSide">
+        <button class="ic round quiet" id="btnZoomIn" title="Phóng to" aria-label="Phóng to">
+          <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.6"/>
+          <path d="M15.3 15.3 20.6 20.6M7.6 10.5h5.8M10.5 7.6v5.8"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Loé sáng khi Tên lửa nổ. Nằm ngoài #app để không bị stacking context của
+     lớp HUD nhốt lại, và trong suốt với chạm. -->
+<div id="flash"></div>
+
+<!-- ══════════ overlay: thắng màn ══════════ -->
+<div id="winOverlay" class="overlay">
+  <div class="scrim"></div>
+  <div class="panel">
+    <div id="wd">WELL DONE</div>
+    <div id="faces"></div>
+    <div class="reward"><i class="coin"></i><span id="winCoins">+10</span></div>
+    <div class="winRow">
+      <button class="btn ghost sq" id="winHome" title="Về Home">🏠</button>
+      <button class="btn ghost sq" id="winReplay" title="Chơi lại">↺</button>
+      <button class="btn primary grow" id="winNext">Level 2</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ overlay: mua booster ══════════ -->
+<div id="shopOverlay" class="overlay">
+  <div class="scrim" data-close></div>
+  <div class="panel">
+    <h3 id="shopName">Gợi ý</h3>
+    <div class="shopIcon" id="shopIcon"></div>
+    <div class="shopDesc" id="shopDesc"></div>
+    <div class="shopCost"><i class="coin"></i><b id="shopPrice">15</b></div>
+    <button class="btn primary" id="shopBuy">Dùng ngay</button>
+    <button class="btn ghost" data-close>Để sau</button>
+  </div>
+</div>
+
+<!-- ══════════ overlay: quà hằng ngày ══════════ -->
+<div id="dailyOverlay" class="overlay">
+  <div class="scrim" data-close></div>
+  <div class="panel" style="text-align:center">
+    <h3>Quà hằng ngày</h3>
+    <div style="font-size:56px;line-height:1.1;margin:6px 0 4px">🎁</div>
+    <div class="shopCost"><i class="coin"></i><b id="dailyAmt">100</b></div>
+    <button class="btn primary" id="dailyClaim">Nhận</button>
+    <button class="btn ghost" data-close>Để sau</button>
+  </div>
+</div>
+
+<!-- ══════════ overlay: cài đặt ══════════ -->
+<div id="setOverlay" class="overlay">
+  <div class="scrim" data-close></div>
+  <div class="panel">
+    <h3>Cài đặt</h3>
+    <div class="field"><span>Âm thanh</span><div class="sw on" id="sndSw"><i></i></div></div>
+    <div class="field"><span>Xoay tự do 3D</span><div class="sw" id="freeSw"><i></i></div></div>
+    <div class="hint" style="margin:-6px 0 14px">Tắt: giữ phương thẳng đứng, khối không bị nghiêng.<br>Bật: lăn tự do như bản gốc.</div>
+    <div class="field"><span>Nhảy tới màn</span><input id="jump" type="number" min="1" value="1"></div>
+    <button class="btn primary" id="jumpGo">Chơi màn này</button>
+    <button class="btn danger" id="resetAll">Chơi lại từ màn 1</button>
+    <button class="btn ghost" data-close>Đóng</button>
+    <div class="hint" id="setHint"></div>
+  </div>
+</div>
+
+<!-- ══════════ tutorial: khoét lỗ quanh đúng nút, chặn mọi thứ còn lại ══════════ -->
+<div id="tut" hidden>
+  <div id="tutBlock"><i data-t></i><i data-b></i><i data-l></i><i data-r></i></div>
+  <div id="tutHole"><i></i></div>
+  <div id="tutTip">
+    <div id="tutStep">Booster mới</div>
+    <div id="tutIcon"></div>
+    <b id="tutName"></b>
+    <span id="tutText"></span>
+    <div id="tutCta">Chạm vào nút đang sáng <em>↓</em></div>
+  </div>
+  <div id="tutHand">
+    <svg viewBox="0 0 64 78" aria-hidden="true">
+      <path d="M20 40V14a6 6 0 0 1 12 0v20m0-6a5.5 5.5 0 0 1 11 0v8m0-5a5.5 5.5 0 0 1 11 0v17
+             c0 13-8 22-20 22s-22-8-22-20V32a5.5 5.5 0 0 1 11 0v8"
+          fill="#ffd9b8" stroke="#8a4a22" stroke-width="3.4"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <button id="tutSkip">Bỏ qua</button>
+</div>
+
+<!-- ══════════ overlay: mẹo thu phóng (hiện đúng một lần, lúc bấm nút thu phóng) ══════════ -->
+<div id="zoomOverlay" class="overlay">
+  <div class="scrim" data-close></div>
+  <div class="panel" style="text-align:center">
+    <h3>Phóng to &amp; thu nhỏ</h3>
+    <div id="zoomDemo" class="touch">
+      <div class="zStage">
+        <i class="zCube"></i>
+        <i class="zTip a"></i><i class="zTip b"></i>
+      </div>
+      <div class="zMouse"><i></i></div>
+      <svg class="zHand" viewBox="0 0 64 78" aria-hidden="true">
+        <path d="M20 40V14a6 6 0 0 1 12 0v20m0-6a5.5 5.5 0 0 1 11 0v8m0-5a5.5 5.5 0 0 1 11 0v17
+             c0 13-8 22-20 22s-22-8-22-20V32a5.5 5.5 0 0 1 11 0v8"
+          fill="#ffd9b8" stroke="#8a4a22" stroke-width="3.4"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="shopDesc" id="zoomText"></div>
+    <button class="btn primary" data-close>Đã hiểu</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="load">
+  <div style="text-align:center">
+    <div>Đang tải level…</div>
+    <div id="bar"><i></i></div>
+  </div>
+</div>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Block Away — thiết kế 30 màn thành phố</title>
+<style>
+  :root{--ink:#20313a;--soft:#5d7581;--line:#d6e4ea;--bg:#eef6f9;--card:#fff;--hard:#e2622f}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 'Segoe UI',system-ui,sans-serif;color:var(--ink);background:var(--bg);
+    display:flex;height:100vh;overflow:hidden}
+  aside{width:310px;flex:0 0 auto;background:var(--card);border-right:1px solid var(--line);
+    display:flex;flex-direction:column}
+  aside h1{margin:0;padding:16px 16px 10px;font-size:16px;letter-spacing:.02em}
+  .cityTab{display:flex;gap:6px;padding:0 16px 12px}
+  .cityTab button{flex:1;padding:8px;border:1px solid var(--line);background:#fff;border-radius:9px;
+    cursor:pointer;font:inherit;font-weight:700;color:var(--soft)}
+  .cityTab button.on{background:#20313a;color:#fff;border-color:#20313a}
+  .list{flex:1;overflow:auto;padding:0 10px 14px}
+  .row{display:grid;grid-template-columns:30px 1fr auto;gap:9px;align-items:center;
+    padding:8px 9px;border-radius:9px;cursor:pointer;border:1px solid transparent}
+  .row:hover{background:#f2f8fb}
+  .row.on{background:#20313a;color:#fff}
+  .row.on .sub,.row.on .n{color:#b9d2dd}
+  .n{font-weight:800;color:var(--soft);font-variant-numeric:tabular-nums}
+  .sub{font-size:12px;color:var(--soft)}
+  .tag{font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:2px 7px;border-radius:7px;
+    background:#f0f5f7;color:var(--soft)}
+  .tag.hard{background:var(--hard);color:#fff}
+  main{flex:1;position:relative;min-width:0}
+  canvas{display:block;width:100%;height:100%}
+  .hud{position:absolute;left:0;right:0;top:0;padding:14px 18px;display:flex;gap:10px;
+    align-items:flex-start;pointer-events:none}
+  .card{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:12px;
+    padding:10px 13px;box-shadow:0 6px 18px rgba(20,50,65,.10);pointer-events:auto}
+  .card b{display:block;font-size:15px}
+  .card .sub{font-size:12px}
+  .stats{display:flex;gap:14px;margin-top:7px;font-size:12px;font-variant-numeric:tabular-nums}
+  .stats i{font-style:normal;color:var(--soft)}
+  .tools{position:absolute;left:18px;bottom:18px;display:flex;gap:8px}
+  .tools button{border:1px solid var(--line);background:rgba(255,255,255,.94);border-radius:10px;
+    padding:9px 13px;cursor:pointer;font:inherit;font-weight:700;color:var(--ink)}
+  .tools button.on{background:#20313a;color:#fff;border-color:#20313a}
+  .play{position:absolute;right:18px;bottom:18px;background:rgba(255,255,255,.94);
+    border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--soft)}
+  .play b{color:var(--ink);font-size:13px}
+</style>
+</head>
+<body>
+<aside>
+  <h1>Thiết kế 30 màn</h1>
+  <div class="cityTab" id="cityTab"></div>
+  <div class="list" id="list"></div>
+</aside>
+<main>
+  <canvas id="gl"></canvas>
+  <div class="hud">
+    <div class="card">
+      <b id="tTitle">…</b>
+      <div class="sub" id="tSub"></div>
+      <div class="stats" id="tStats"></div>
+    </div>
+  </div>
+  <div class="tools">
+    <button id="bCubes" class="on">Áo khối</button>
+    <button id="bObj" class="on">Vật thể</button>
+    <button id="bSolid">Ô thân</button>
+    <button id="bSolve">Chạy thử lời giải</button>
+  </div>
+  <div class="play"><b id="pStat">—</b><div id="pSub">kéo để xoay · lăn để phóng to</div></div>
+</main>
+<script type="module" src="./preview.js"></script>
+</body>
+</html>

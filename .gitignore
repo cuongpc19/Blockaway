@@ -1,0 +1,3 @@
+# bản sao lưu cục bộ, không đẩy lên
+*.bak
+.theme-backup/

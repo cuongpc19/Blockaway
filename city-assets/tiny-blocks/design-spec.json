@@ -1,0 +1,33 @@
+{
+  "format": "BlockAwayTinyBlockDesign/1.0",
+  "purpose": "Visual guide for the next session that wraps puzzle cubes around mission landmark GLBs.",
+  "geometry": {
+    "cellSizeMeters": 1,
+    "occupiedFill": 0.92,
+    "cornerBevelRatio": 0.085,
+    "silhouette": "rounded cube with flat face centers",
+    "preferredColorStyle": "bright solid colors, one main color per cube"
+  },
+  "palette": {
+    "leafGreen": "#41BD79",
+    "bayBlue": "#31A9D4",
+    "sunYellow": "#F1C748",
+    "orchid": "#A67BE0",
+    "coral": "#F0795F"
+  },
+  "faceMarks": {
+    "freeFace": "small white arrow pointing outward from the cube",
+    "oppositeFace": "small white or pale oval marker",
+    "otherFaces": "no mark or a subtle continuation mark, keep face readable",
+    "markScaleOfFace": 0.42,
+    "keepMarksInsetFromBevel": true
+  },
+  "layoutForNextSession": {
+    "alignCubesToWorldGrid": true,
+    "cubeCentersOnIntegerCoordinates": true,
+    "missionObjectOrigin": "center X/Z, ground Y=0",
+    "objectBoundingBoxMustRemainInsidePuzzleEnvelope": true,
+    "doNotEditMissionGlb": "Place the landmark inside the cube field; preserve its source GLB as the target reference."
+  },
+  "referenceModel": "tiny-block-kit.glb"
+}

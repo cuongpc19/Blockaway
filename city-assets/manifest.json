@@ -1,0 +1,714 @@
+{
+  "format": "BlockAwayCityAssets/1.0",
+  "units": "meters",
+  "upAxis": "Y",
+  "visualDesign": {
+    "blockDominantMissionTarget": "80%",
+    "primaryForms": "boxes and rectangular prisms",
+    "secondaryForms": "small wheels, lamps and accents"
+  },
+  "cities": [
+    {
+      "id": "greenbay",
+      "name": "Greenbay",
+      "subtitle": "Thành phố bên vịnh",
+      "palette": [
+        "#67c66b",
+        "#ffd45b",
+        "#42a5d8"
+      ],
+      "sky": "#d9f4ff",
+      "overviewModel": "city-scenes/greenbay.glb",
+      "overviewPreview": "city-scenes/greenbay.png",
+      "overviewSize": [
+        92,
+        24,
+        70
+      ]
+    },
+    {
+      "id": "metrovale",
+      "name": "Metrovale",
+      "subtitle": "Đô thị trung tâm",
+      "palette": [
+        "#a879e8",
+        "#56c8c0",
+        "#ff9b65"
+      ],
+      "sky": "#e8e0ff",
+      "overviewModel": "city-scenes/metrovale.glb",
+      "overviewPreview": "city-scenes/metrovale.png",
+      "overviewSize": [
+        92,
+        24,
+        70
+      ]
+    }
+  ],
+  "missions": [
+    {
+      "id": "gb-01",
+      "city": "greenbay",
+      "level": 1,
+      "title": "Ghế công viên",
+      "description": "Ghế gỗ ven lối đi",
+      "size": [
+        1.8,
+        1.2,
+        0.8
+      ],
+      "kind": "bench",
+      "actualSize": [
+        1.75,
+        1.2,
+        0.81
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-01.glb",
+      "preview": "previews/gb-01.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-02",
+      "city": "greenbay",
+      "level": 2,
+      "title": "Thùng rác",
+      "description": "Thùng rác phân loại",
+      "size": [
+        0.7,
+        1.35,
+        0.7
+      ],
+      "kind": "bin",
+      "actualSize": [
+        0.74,
+        1.06,
+        0.79
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-02.glb",
+      "preview": "previews/gb-02.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-03",
+      "city": "greenbay",
+      "level": 3,
+      "title": "Giá để xe đạp",
+      "description": "Giá chữ U đôi",
+      "size": [
+        1.5,
+        1.15,
+        0.65
+      ],
+      "kind": "rack",
+      "actualSize": [
+        1.675,
+        0.93,
+        0.22
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-03.glb",
+      "preview": "previews/gb-03.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-04",
+      "city": "greenbay",
+      "level": 4,
+      "title": "Đèn đường",
+      "description": "Đèn công viên hai nhánh",
+      "size": [
+        1.5,
+        4.5,
+        1.2
+      ],
+      "kind": "lamp",
+      "actualSize": [
+        1.58,
+        4.333,
+        0.38
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-04.glb",
+      "preview": "previews/gb-04.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-05",
+      "city": "greenbay",
+      "level": 5,
+      "title": "Cây non",
+      "description": "Cây bóng mát bên phố",
+      "size": [
+        2.8,
+        4.6,
+        2.8
+      ],
+      "kind": "tree",
+      "actualSize": [
+        1.868,
+        4.269,
+        1.64
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-05.glb",
+      "preview": "previews/gb-05.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-06",
+      "city": "greenbay",
+      "level": 6,
+      "title": "Trạm xe buýt",
+      "description": "Nhà chờ kính cạnh công viên",
+      "size": [
+        3.8,
+        2.8,
+        1.6
+      ],
+      "kind": "shelter",
+      "actualSize": [
+        6.49,
+        2.595,
+        1.45
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-06.glb",
+      "preview": "previews/gb-06.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-07",
+      "city": "greenbay",
+      "level": 7,
+      "title": "Ô tô gia đình",
+      "description": "Xe xanh đỗ bên đường",
+      "size": [
+        4.2,
+        1.8,
+        2.1
+      ],
+      "kind": "car",
+      "actualSize": [
+        3.304,
+        1.61,
+        2.07
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-07.glb",
+      "preview": "previews/gb-07.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-08",
+      "city": "greenbay",
+      "level": 8,
+      "title": "Đài phun nước",
+      "description": "Đài phun nước quảng trường",
+      "size": [
+        4,
+        2.6,
+        4
+      ],
+      "kind": "fountain",
+      "actualSize": [
+        3.55,
+        2.12,
+        3.55
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-08.glb",
+      "preview": "previews/gb-08.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-09",
+      "city": "greenbay",
+      "level": 9,
+      "title": "Cầu trượt",
+      "description": "Cầu trượt sân chơi",
+      "size": [
+        4,
+        3.6,
+        2.5
+      ],
+      "kind": "slide",
+      "actualSize": [
+        3.785,
+        2.14,
+        2.185
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-09.glb",
+      "preview": "previews/gb-09.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-10",
+      "city": "greenbay",
+      "level": 10,
+      "title": "Quầy cà phê",
+      "description": "Quầy cà phê trong công viên",
+      "size": [
+        4.8,
+        3.8,
+        3.4
+      ],
+      "kind": "kiosk",
+      "actualSize": [
+        3.5,
+        2.6,
+        2.5
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-10.glb",
+      "preview": "previews/gb-10.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-11",
+      "city": "greenbay",
+      "level": 11,
+      "title": "Nhà ven phố",
+      "description": "Nhà mái ngói có hiên",
+      "size": [
+        6,
+        5,
+        5
+      ],
+      "kind": "cottage",
+      "actualSize": [
+        5.7,
+        5,
+        4.7
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-11.glb",
+      "preview": "previews/gb-11.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-12",
+      "city": "greenbay",
+      "level": 12,
+      "title": "Quán cà phê",
+      "description": "Quán góc phố hai tầng",
+      "size": [
+        7,
+        6.4,
+        5.4
+      ],
+      "kind": "cafe",
+      "actualSize": [
+        5.95,
+        5.745,
+        4.62
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-12.glb",
+      "preview": "previews/gb-12.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-13",
+      "city": "greenbay",
+      "level": 13,
+      "title": "Nhà kính",
+      "description": "Nhà kính vườn thực vật",
+      "size": [
+        8,
+        5.2,
+        6
+      ],
+      "kind": "greenhouse",
+      "actualSize": [
+        7.3,
+        5.057,
+        5.2
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-13.glb",
+      "preview": "previews/gb-13.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-14",
+      "city": "greenbay",
+      "level": 14,
+      "title": "Tòa văn phòng",
+      "description": "Tòa nhà nhìn ra vịnh",
+      "size": [
+        7,
+        12,
+        7
+      ],
+      "kind": "office",
+      "actualSize": [
+        6.9,
+        11.645,
+        6.7
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-14.glb",
+      "preview": "previews/gb-14.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "gb-15",
+      "city": "greenbay",
+      "level": 15,
+      "title": "Cầu vòm",
+      "description": "Cầu đi bộ qua kênh",
+      "size": [
+        14,
+        5,
+        5.5
+      ],
+      "kind": "archbridge",
+      "actualSize": [
+        14.8,
+        4.59,
+        4.6
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/gb-15.glb",
+      "preview": "previews/gb-15.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-01",
+      "city": "metrovale",
+      "level": 1,
+      "title": "Trụ chắn xe",
+      "description": "Trụ bollard trước quảng trường",
+      "size": [
+        0.65,
+        1.15,
+        0.65
+      ],
+      "kind": "bollard",
+      "actualSize": [
+        0.72,
+        1,
+        0.72
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-01.glb",
+      "preview": "previews/mv-01.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-02",
+      "city": "metrovale",
+      "level": 2,
+      "title": "Vòi cứu hỏa",
+      "description": "Vòi cứu hỏa góc phố",
+      "size": [
+        0.95,
+        1.35,
+        0.8
+      ],
+      "kind": "hydrant",
+      "actualSize": [
+        1.56,
+        1.195,
+        0.78
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-02.glb",
+      "preview": "previews/mv-02.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-03",
+      "city": "metrovale",
+      "level": 3,
+      "title": "Đèn giao thông",
+      "description": "Cột đèn giao thông ba màu",
+      "size": [
+        1.2,
+        4.8,
+        1
+      ],
+      "kind": "traffic",
+      "actualSize": [
+        1.27,
+        4.945,
+        0.7
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-03.glb",
+      "preview": "previews/mv-03.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-04",
+      "city": "metrovale",
+      "level": 4,
+      "title": "Xe scooter",
+      "description": "Scooter điện dùng chung",
+      "size": [
+        1.9,
+        1.7,
+        0.7
+      ],
+      "kind": "scooter",
+      "actualSize": [
+        1.78,
+        1.16,
+        0.32
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-04.glb",
+      "preview": "previews/mv-04.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-05",
+      "city": "metrovale",
+      "level": 5,
+      "title": "Tủ bán vé",
+      "description": "Máy bán vé tàu điện",
+      "size": [
+        1.2,
+        2.1,
+        0.9
+      ],
+      "kind": "ticket",
+      "actualSize": [
+        0.95,
+        1.82,
+        0.785
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-05.glb",
+      "preview": "previews/mv-05.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-06",
+      "city": "metrovale",
+      "level": 6,
+      "title": "Tượng nghệ thuật",
+      "description": "Tượng cánh buồm ở quảng trường",
+      "size": [
+        2.8,
+        4.2,
+        2.2
+      ],
+      "kind": "sculpture",
+      "actualSize": [
+        1.96,
+        3.97,
+        1.96
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-06.glb",
+      "preview": "previews/mv-06.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-07",
+      "city": "metrovale",
+      "level": 7,
+      "title": "Taxi",
+      "description": "Taxi vàng đón khách",
+      "size": [
+        4.3,
+        1.9,
+        2.1
+      ],
+      "kind": "taxi",
+      "actualSize": [
+        3.368,
+        1.91,
+        2.07
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-07.glb",
+      "preview": "previews/mv-07.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-08",
+      "city": "metrovale",
+      "level": 8,
+      "title": "Xe giao hàng",
+      "description": "Xe van giao hàng trong phố",
+      "size": [
+        5.4,
+        2.5,
+        2.5
+      ],
+      "kind": "van",
+      "actualSize": [
+        4.75,
+        2.47,
+        2.29
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-08.glb",
+      "preview": "previews/mv-08.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-09",
+      "city": "metrovale",
+      "level": 9,
+      "title": "Xe buýt điện",
+      "description": "Xe buýt điện tuyến trung tâm",
+      "size": [
+        8,
+        3.2,
+        2.7
+      ],
+      "kind": "bus",
+      "actualSize": [
+        7.515,
+        2.835,
+        2.575
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-09.glb",
+      "preview": "previews/mv-09.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-10",
+      "city": "metrovale",
+      "level": 10,
+      "title": "Xe điện tram",
+      "description": "Toa tram hiện đại",
+      "size": [
+        10,
+        3.7,
+        2.8
+      ],
+      "kind": "tram",
+      "actualSize": [
+        9.2,
+        3.894,
+        2.705
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-10.glb",
+      "preview": "previews/mv-10.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-11",
+      "city": "metrovale",
+      "level": 11,
+      "title": "Thư viện",
+      "description": "Thư viện thành phố mái kính",
+      "size": [
+        9,
+        7,
+        8
+      ],
+      "kind": "library",
+      "actualSize": [
+        9,
+        7.085,
+        7.8
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-11.glb",
+      "preview": "previews/mv-11.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-12",
+      "city": "metrovale",
+      "level": 12,
+      "title": "Chung cư",
+      "description": "Tòa căn hộ có ban công",
+      "size": [
+        8,
+        15,
+        7
+      ],
+      "kind": "apartment",
+      "actualSize": [
+        7.8,
+        15.52,
+        6.975
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-12.glb",
+      "preview": "previews/mv-12.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-13",
+      "city": "metrovale",
+      "level": 13,
+      "title": "Bệnh viện",
+      "description": "Bệnh viện đa khoa trung tâm",
+      "size": [
+        12,
+        12,
+        9
+      ],
+      "kind": "hospital",
+      "actualSize": [
+        11.2,
+        12.025,
+        9.1
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-13.glb",
+      "preview": "previews/mv-13.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-14",
+      "city": "metrovale",
+      "level": 14,
+      "title": "Nhà ga trên cao",
+      "description": "Nhà ga metro và sân ga",
+      "size": [
+        15,
+        8,
+        7
+      ],
+      "kind": "station",
+      "actualSize": [
+        15,
+        7.05,
+        6.1
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-14.glb",
+      "preview": "previews/mv-14.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    },
+    {
+      "id": "mv-15",
+      "city": "metrovale",
+      "level": 15,
+      "title": "Cầu dây văng",
+      "description": "Cầu lớn bắc qua sông",
+      "size": [
+        22,
+        12,
+        8
+      ],
+      "kind": "cablebridge",
+      "actualSize": [
+        25.6,
+        11.39,
+        8
+      ],
+      "shapeStyle": "block-dominant",
+      "model": "models/mv-15.glb",
+      "preview": "previews/mv-15.png",
+      "objectOrigin": "center X/Z, ground Y=0"
+    }
+  ],
+  "tinyBlockReference": {
+    "model": "tiny-blocks/tiny-block-kit.glb",
+    "spec": "tiny-blocks/design-spec.json"
+  }
+}
