@@ -9,6 +9,13 @@
 
 import { save, ECON, BOOSTERS } from './econ.js';
 
+/* ─── TẠM TẮT hàng booster và bài dạy booster ───
+   Đổi về true là bật lại nguyên trạng. Không xoá dòng nào bên dưới: luật 2.4
+   nói nút chưa dùng thì `hidden` chứ không gỡ code, vì gỡ rồi nối lại là lúc
+   dây đứt mà không ai biết. CSS `.tool[hidden]` và `#tut[hidden]` đã có sẵn. */
+const SHOW_BOOSTERS = false;
+const SHOW_TUTORIAL = false;
+
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
@@ -135,7 +142,7 @@ export function startUI(game, boot) {
       const t = TOOL[b.id];
       const btn = $(t.btn), badge = $(t.price);
       // 2.4 — chưa tới màn mở khoá thì dựng sẵn nhưng ẩn, không xoá code
-      btn.hidden = !save.unlocked(b.id, game.num);
+      btn.hidden = !SHOW_BOOSTERS || !save.unlocked(b.id, game.num);
       if (btn.hidden) continue;
       const o = save.offer(b.id);
       if (o.kind === 'buy') {
@@ -271,6 +278,7 @@ export function startUI(game, boot) {
   function maybeTut() {
     clearTimeout(tutTimer);
     if (tutId) endTut(false);
+    if (!SHOW_TUTORIAL || !SHOW_BOOSTERS) return;   // không dạy thứ đang ẩn
     if (screen !== 'game') return;
     const due = BOOSTERS.find((b) => save.tutPending(b.id, game.num));
     if (due) tutTimer = setTimeout(() => showTut(due.id), 620);
